@@ -14,7 +14,7 @@
                         <h1><field name="name" placeholder="e.g. Sale Order"/></h1>
                     </div>
                     <div>
-                        <label for="import_compat" string="I want to update data (import-compatible export)"/>
+<!--                        <label for="import_compat" string="I want to update data (import-compatible export)"/>-->
                         <field name="import_compat" nolabel="1" style="margin-left: 5px"/>
                     </div>
                     <notebook>
@@ -31,6 +31,7 @@
                                             <group>
                                                 <field name="model_id"/>
                                                 <field name="model_name"/>
+                                                <field name="line_ids" widget="many2many_tags"/>
                                             </group>
                                         </group>
                                         <group string="Filter" name='filter' attrs="{'invisible': [('mode', '=', 'advanced')]}">
@@ -64,7 +65,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="display_name" string="Name"/>
-                <field name="import_compat"/>
+<!--                <field name="import_compat"/>-->
                 <field name="lines" widget="many2many_tags"/>
                 <button name="export" icon="fa-download" string="Export" type="object"/>
             </tree>

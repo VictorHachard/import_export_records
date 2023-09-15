@@ -6,6 +6,12 @@
         <field name="model">ier.import.wizard</field>
         <field name="arch" type="xml">
             <form>
+                <div class="alert alert-danger oe_edit_only" role="alert" attrs="{'invisible': [('error_html', '=', '')]}">
+                    <field name="error_html" readonly="1"/>
+                </div>
+                <div class="alert alert-warning oe_edit_only" role="alert" attrs="{'invisible': [('warning_html', '=', '')]}">
+                    <field name="warning_html" readonly="1"/>
+                </div>
                 <group>
                     <field name="zip_file" filename="zip_file_name"/>
                     <field name="zip_file_name" invisible="1"/>

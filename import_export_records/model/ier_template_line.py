@@ -52,6 +52,12 @@ class IERTemplateLine(models.Model):
                        help="Write Python code that the action will execute. Some variables are "
                             "available for use; help about python expression is given in the help tab.")
 
+    line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
+
+    def export_action(self):
+        self.ensure_one()
+        return self.template_id.export()
+
     def name_get(self):
         return [(record.id, f'{record.ir_exports_id.name} [{record.model_id.name}]') for record in self]
 
@@ -68,9 +74,13 @@ class IERTemplateLine(models.Model):
             rec.file_name = str(rec.sequence) + '.' + rec.model_name
 
     @api.depends('ir_exports_id')
+    def _compute_line_ids(self):
+        for rec in self:
+            rec.write({'line_ids': [(6, 0, rec.ir_exports_id.export_fields.ids)]})
+
+    @api.depends('ir_exports_id')
     def _compute_model_id(self):
         for rec in self:
-            rec.filter_domain = ''
             if rec.ir_exports_id:
                 rec.model_id = self.env['ir.model'].search([('model', '=', rec.ir_exports_id.resource)])
                 rec.model_name = rec.ir_exports_id.resource
@@ -78,21 +88,26 @@ class IERTemplateLine(models.Model):
                 rec.model_id = False
                 rec.model_name = ''
 
+    @api.depends('ir_exports_id')
+    def _onchange_ir_exports_id(self):
+        for rec in self:
+            rec.filter_domain = ''
+
     def _get_domain(self):
         return eval(self.filter_domain) if self.filter_domain else []
 
     def _get_export_fields(self):
         export_fields = self.ir_exports_id.export_fields.mapped('name')
-        if self.ier_template_id.import_compat:
-            export_fields.insert(0, 'id')
+        # if self.ier_template_id.import_compat and 'id' not in export_fields:
+        #     export_fields.insert(0, 'id')
         return export_fields
 
     def _export_template(self):
         self.ensure_one()
 
         model = self.env[self.model_name]
-        if self.ier_template_id.import_compat:
-            model.with_context(import_compat=True)
+        # if self.ier_template_id.import_compat:
+        #     model.with_context(import_compat=True)
 
         if self.mode == 'advanced':
             action = self.run()

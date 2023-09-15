@@ -31,6 +31,9 @@ class IERImportWizard(models.TransientModel):
     zip_file = fields.Binary(string='Upload your File', required=True)
     zip_file_name = fields.Char("File Name", readonly=True)
 
+    error_html = fields.Html()
+    warning_html = fields.Html()
+
     def _import_record_and_execute(self, model, decoded_csv, fields):
         """
         Import record and execute the action
@@ -52,6 +55,9 @@ class IERImportWizard(models.TransientModel):
     def import_action(self):
         # TODO: delete zip file after import
         if self.zip_file:
+            error_html = ""
+            warning_html = ""
+
             record_count = 0
             decoded_zip = base64.b64decode(self.zip_file)
             io_bytes_zip = io.BytesIO(decoded_zip)
@@ -65,26 +71,32 @@ class IERImportWizard(models.TransientModel):
                     csvreader = csv.reader(io_string_csv)
                     headers = next(csvreader)
                     result = self._import_record_and_execute('.'.join(model.split('.')[1:-1]), decoded_csv, headers)
-                    record_count += len(result['name'])
+                    record_count += len(result['ids']) if result['ids'] else 0
 
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'type': 'warning',
-                    'message': str(record_count) + ' records successfully imported',
-                    'sticky': True,
-                }
+                    if result and 'messages' in result and len(result['messages']) > 0:
+                        for msg in result['messages']:
+                            if msg['type'] == 'warning':
+                                if msg['field']:
+                                    warning_html += f"<tr><td>{model}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}<td></tr>\n"
+                                else:
+                                    warning_html += f"<tr><td colspan='3'>{model}</td><td>{msg['message']}<td></tr>\n"
+                            else:
+                                if msg['field']:
+                                    error_html += f"<tr><td>{model}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}<td></tr>\n"
+                                else:
+                                    error_html += f"<tr><td colspan='3'>{model}</td><td>{msg['message']}<td></tr>\n"
+
+                    # Create the complete HTML message
+                    self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
+                    self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'warning',
+                'message': str(record_count) + ' records successfully imported',
+                'sticky': False,
             }
-                    # if result and 'messages' in result and len(result['messages']) > 0:
-                    #     for msg in result['messages']:
-                    #         if msg['type'] == 'warning':
-                    #             if msg['field']:
-                    #                 self.warning_message += 'model: ' + model + ', field: ' + msg['field'] + ', record: ' + str(msg['record']) + ' -> ' + msg['message'] + '\n'
-                    #             else:
-                    #                 self.warning_message += 'model: ' + model + ' -> ' + msg['message'] + '\n'
-                    #         else:
-                    #             if msg['field']:
-                    #                 self.error_message += 'model: ' + model + ', field: ' + msg['field'] + ', record: ' + str(msg['record']) + ' -> ' + msg['message'] + '\n'
-                    #             else:
-                    #                 self.warning_message += 'model: ' + model + ' -> ' + msg['message'] + '\n'
+        }
+

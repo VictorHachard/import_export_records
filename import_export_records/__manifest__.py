@@ -14,6 +14,8 @@
         'security/ir.model.access.csv',
         'security/res_groups.xml',
 
+        'data/ier_exports.xml',
+
         'wizard/ier_export_records.xml',
         'wizard/ier_import_records.xml',
 
@@ -22,5 +24,5 @@
         'views/menu.xml',
     ],
     'installable': True,
-    'application': False,
+    'application': True,
 }

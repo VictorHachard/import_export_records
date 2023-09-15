@@ -5,6 +5,7 @@ import zipfile
 from datetime import datetime, timezone
 
 from odoo import models, fields, exceptions, _, api
+from odoo.exceptions import UserError
 from odoo.tools import pytz
 
 
@@ -53,3 +54,9 @@ class IERTemplate(models.Model):
         if 'name' not in default:
             default['name'] = _("%s (Copy)") % self.name
         return super().copy(default=default)
+
+    @api.ondelete(at_uninstall=False)
+    def _unlink_except_ier_exports_ier(self):
+        ier_exports_ier = self.env.ref('import_export_records.ier_exports_ier')
+        if ier_exports_ier in self:
+            raise UserError(_("You cannot delete this template."))
