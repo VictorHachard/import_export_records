@@ -5,7 +5,7 @@
     'description': "This module simplifies the process of exporting multiple records from various models by providing a flexible template-based approach, allowing users to define export templates and filter records using domains.",
     'category': 'Technical',
     'version': '0.0.1',
-    'author': "Victor Hachard",
+    'author': "Victor",
     'license': 'LGPL-3',
     'depends': ['base'],
     'data': [
