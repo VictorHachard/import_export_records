@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import base64
 import csv
 import io
 import logging
@@ -7,7 +6,8 @@ import logging
 from pytz import timezone
 
 import odoo
-from odoo import api, fields, models, tools, _, Command
+from odoo import api, fields, models, tools, _
+from odoo.addons.web.controllers.export import Export
 from odoo.exceptions import MissingError, ValidationError, AccessError, UserError
 from odoo.tools import pycompat, safe_eval
 from odoo.tools.safe_eval import safe_eval, test_python_expr
@@ -54,10 +54,6 @@ class IERTemplateLine(models.Model):
 
     line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
 
-    def export_action(self):
-        self.ensure_one()
-        return self.template_id.export()
-
     def name_get(self):
         return [(record.id, f'{record.ir_exports_id.name} [{record.model_id.name}]') for record in self]
 
@@ -78,6 +74,28 @@ class IERTemplateLine(models.Model):
         for rec in self:
             rec.write({'line_ids': [(6, 0, rec.ir_exports_id.export_fields.ids)]})
 
+    @api.constrains('ir_exports_id')
+    def _check_ir_exports_id(self):
+        for record in self:
+            not_allowed_fields = []
+            import_compat_fields = record._get_import_compat_for_model()
+            for field in record.ir_exports_id.export_fields.mapped('name'):
+                if field not in import_compat_fields:
+                    not_allowed_fields.append(field)
+            if not_allowed_fields:
+                raise ValidationError(
+                    _('The following fields are not importable: %s. Please check your export settings and try again.') % ','.join(not_allowed_fields))
+
+    def _get_import_compat_for_model(self):
+        fields = (Export().get_fields(model=self.model_name))
+        fields_value = [field['value'] for field in fields]
+        for field in fields:
+            if field['field_type'] in ['many2one', 'many2many', 'one2many']:
+                sub_fields = (Export().get_fields(model=field['params']['model']))
+                sub_fields_value = [field['id'] + '/' + sub_field['value'] for sub_field in sub_fields if sub_field['field_type'] not in ['many2one', 'many2many', 'one2many'] and sub_field['id'] != 'id']
+                fields_value += sub_fields_value + [field['id']]
+        return fields_value
+
     @api.depends('ir_exports_id')
     def _compute_model_id(self):
         for rec in self:
@@ -97,17 +115,12 @@ class IERTemplateLine(models.Model):
         return eval(self.filter_domain) if self.filter_domain else []
 
     def _get_export_fields(self):
-        export_fields = self.ir_exports_id.export_fields.mapped('name')
-        # if self.ier_template_id.import_compat and 'id' not in export_fields:
-        #     export_fields.insert(0, 'id')
-        return export_fields
+        return self.ir_exports_id.export_fields.mapped('name')
 
     def _export_template(self):
         self.ensure_one()
 
         model = self.env[self.model_name]
-        # if self.ier_template_id.import_compat:
-        #     model.with_context(import_compat=True)
 
         if self.mode == 'advanced':
             action = self.run()

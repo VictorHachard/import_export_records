@@ -5,21 +5,23 @@
         <field name="name">ier.import.wizard.view.form</field>
         <field name="model">ier.import.wizard</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="ier_import_wizard">
                 <div class="alert alert-danger oe_edit_only" role="alert" attrs="{'invisible': [('error_html', '=', '')]}">
                     <field name="error_html" readonly="1"/>
                 </div>
                 <div class="alert alert-warning oe_edit_only" role="alert" attrs="{'invisible': [('warning_html', '=', '')]}">
                     <field name="warning_html" readonly="1"/>
                 </div>
-                <group>
-                    <field name="zip_file" filename="zip_file_name"/>
-                    <field name="zip_file_name" invisible="1"/>
-                </group>
-                <footer>
-                    <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('zip_file', '=', False)]}"/>
-                    <button special="cancel" string="Cancel"/>
-                </footer>
+                <sheet>
+                    <group>
+                        <field name="zip_file" filename="zip_file_name"/>
+                        <field name="zip_file_name" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('zip_file', '=', False)]}"/>
+                        <button special="cancel" string="Cancel"/>
+                    </footer>
+                </sheet>
             </form>
         </field>
     </record>

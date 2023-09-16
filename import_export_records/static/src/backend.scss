@@ -1,0 +1,12 @@
+.ier_import_wizard div[name='error_html'] td,
+.ier_import_wizard div[name='error_html'] th,
+.ier_import_wizard div[name='warning_html'] td,
+.ier_import_wizard div[name='warning_html'] th {
+    border-width: 0;
+    padding: 2px 8px;
+    border-width: thin;
+}
+.ier_import_wizard div[name='error_html'] table,
+.ier_import_wizard div[name='warning_html'] table {
+    width: 100%;
+}

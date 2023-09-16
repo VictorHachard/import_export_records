@@ -23,6 +23,11 @@
 
         'views/menu.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'import_export_records/static/src/backend.scss',
+        ],
+    },
     'installable': True,
     'application': True,
 }

@@ -4,7 +4,7 @@ import io
 import zipfile
 from datetime import datetime, timezone
 
-from odoo import models, fields, exceptions, _, api
+from odoo import models, fields, _, api
 from odoo.exceptions import UserError
 from odoo.tools import pytz
 
@@ -15,9 +15,17 @@ class IERTemplate(models.Model):
 
     name = fields.Char(required=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
+    model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
     import_compat = fields.Boolean(string='Import Compatible Export', default=False)
 
+    @api.depends('lines.model_id')
+    def _compute_model_ids(self):
+        for rec in self:
+            rec.model_ids = rec.lines.model_id.ids
+
     def export(self):
+        self.lines._check_ir_exports_id()
+
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, mode="w") as zip_archive:
             for line in self.lines.filtered(lambda l: l.active):
