@@ -30,7 +30,7 @@
             ]"/>
         </record>
 
-        <record id="ier_exports_ier" model="ier.template">
+        <record id="ier_exports_ier" model="ier.template" context="{'bypass_import_compat_constrain': True}">
             <field name="name">IER Template</field>
             <field name="lines" eval="[
             (0, 0, {

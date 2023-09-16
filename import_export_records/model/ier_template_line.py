@@ -38,7 +38,7 @@ class IERTemplateLine(models.Model):
 
     sequence = fields.Integer(default=_default_sequence)
     ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade')
-    ir_exports_id = fields.Many2one('ir.exports', string='Exports Template')
+    ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template')
 
     active = fields.Boolean(default=True)
 
@@ -76,6 +76,8 @@ class IERTemplateLine(models.Model):
 
     @api.constrains('ir_exports_id')
     def _check_ir_exports_id(self):
+        if self.env.context.get('bypass_import_compat_constrain', False):
+            return
         for record in self:
             not_allowed_fields = []
             import_compat_fields = record._get_import_compat_for_model()
