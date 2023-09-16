@@ -51,6 +51,9 @@
                             <p>
                                 The export template must be a <b>import-compatible export</b> and should not contain fields nested more than two levels deep.
                             </p>
+                            <p>
+                                The order of the line is important. If one line depends on another, make sure to place the dependent line above the one it relies on.
+                            </p>
                         </page>
                     </notebook>
                 </sheet>

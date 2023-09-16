@@ -24,6 +24,10 @@ class IERTemplate(models.Model):
             rec.model_ids = rec.lines.model_id.ids
 
     def export(self):
+        """
+        Prepares and exports data in CSV format for current template.
+        It then compresses the CSV files into a ZIP archive and creates an attachment for download.
+        """
         self.lines._check_ir_exports_id()
 
         zip_buffer = io.BytesIO()

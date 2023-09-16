@@ -87,6 +87,10 @@ class IERTemplateLine(models.Model):
                     _('The following fields are not importable: %s. Please check your export settings and try again.') % ','.join(not_allowed_fields))
 
     def _get_import_compat_for_model(self):
+        """
+        Return a list of import-compatible field names for the current model, including fields from related models.
+        It is used to validate export field compatibility.
+        """
         fields = (Export().get_fields(model=self.model_name))
         fields_value = [field['value'] for field in fields]
         for field in fields:
@@ -117,12 +121,18 @@ class IERTemplateLine(models.Model):
             rec.filter_domain = ''
 
     def _get_domain(self):
+        """ Return a domain expression based on the 'filter_domain' field, evaluating it using eval if it is not empty. """
         return eval(self.filter_domain) if self.filter_domain else []
 
     def _get_export_fields(self):
+        """ Return a list of export field names associated with the 'ir_exports_id.export_fields' field. """
         return self.ir_exports_id.export_fields.mapped('name')
 
     def _export_template(self):
+        """
+        Exports data based on the current record's configuration.
+        It either executes the Python code or the filtered domain based on the mode.
+        """
         self.ensure_one()
 
         model = self.env[self.model_name]
@@ -141,6 +151,10 @@ class IERTemplateLine(models.Model):
         return datas
 
     def export_files(self):
+        """
+
+        Exports data in CSV format based on the export configuration defined in the current record.
+        """
         self.ensure_one()
 
         csv_file = io.StringIO()
@@ -157,7 +171,7 @@ class IERTemplateLine(models.Model):
 
     @api.model
     def _get_eval_context(self):
-        """ evaluation context to pass to safe_eval """
+        """ Prepares an evaluation context with various variables and libraries that can be used when executing Python code. """
         return {
             'uid': self._uid,
             'user': self.env.user,
@@ -177,10 +191,18 @@ class IERTemplateLine(models.Model):
         }
 
     def _run_action_code_multi(self, eval_context):
+        """
+        Executes the Python code within the provided evaluation context.
+        It returns the 'action' dictionary from the code execution.
+        """
         safe_eval(self.code.strip(), eval_context, mode="exec", nocopy=True, filename=str(self))  # nocopy allows to return 'action'
         return eval_context.get('action')
 
     def run(self):
+        """
+        Orchestrates the execution of Python code.
+        It handles access control, evaluation context setup, and code execution, returning the 'action' dictionary from the code execution, or False if no action is defined.
+        """
         self.ensure_one()
         eval_context = self._get_eval_context()
         records = eval_context.get('records')
