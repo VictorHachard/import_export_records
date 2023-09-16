@@ -90,7 +90,10 @@ class IERTemplateLine(models.Model):
         fields = (Export().get_fields(model=self.model_name))
         fields_value = [field['value'] for field in fields]
         for field in fields:
-            if field['field_type'] in ['many2one', 'many2many', 'one2many']:
+            if field['field_type'] in ['many2one', 'many2many']:
+                # sub_fields = (Export().get_fields(model=field['params']['model']))
+                fields_value += [field['id'], field['id'] + '/id', field['id'] + '/name']
+            elif field['field_type'] in ['one2many']:
                 sub_fields = (Export().get_fields(model=field['params']['model']))
                 sub_fields_value = [field['id'] + '/' + sub_field['value'] for sub_field in sub_fields if sub_field['field_type'] not in ['many2one', 'many2many', 'one2many'] and sub_field['id'] != 'id']
                 fields_value += sub_fields_value + [field['id']]
