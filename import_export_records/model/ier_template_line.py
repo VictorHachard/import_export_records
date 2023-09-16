@@ -141,10 +141,8 @@ class IERTemplateLine(models.Model):
 
         if self.mode == 'advanced':
             action = self.run()
-            if not action:
+            if not action or 'records' not in action:
                 raise UserError(_("The action is empty. Return records in an ID list, assign: action = {'records': [ids]}"))
-            elif 'records' not in action or not action['records']:
-                raise UserError(_('There is no record in the return action'))
             records = model.browse(action['records'])
         else:
             records = model.search(self._get_domain())
