@@ -17,7 +17,7 @@ from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
 
-DEFAULT_PYTHON_CODE = """# Available variables:
+IER_DEFAULT_PYTHON_CODE = """# Available variables:
 #  - env
 #  - model: current model
 #  - records: recordset of all records from the model; may be void
@@ -25,7 +25,8 @@ DEFAULT_PYTHON_CODE = """# Available variables:
 #  - float_compare: Odoo function to compare floats based on specific precisions
 #  - UserError: Warning Exception to use with raise
 #  - uid, user: current user id and user record
-# Return records in an ID list, assign: action = {'records': [ids]}\n\n\n\n"""
+# Return records in an ID list, assign: action = {'records': [ids]}\n\n
+action = {'records': records.ids}\n"""
 
 
 class IERTemplateLine(models.Model):
@@ -38,7 +39,8 @@ class IERTemplateLine(models.Model):
 
     sequence = fields.Integer(default=_default_sequence)
     ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade')
-    ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template')
+    ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template',
+                                    ondelete='cascade')
 
     active = fields.Boolean(default=True)
 
@@ -48,9 +50,8 @@ class IERTemplateLine(models.Model):
 
     mode = fields.Selection([('easy', 'Simple'), ('advanced', 'Advanced')], required=True, default='easy')
     filter_domain = fields.Char()
-    code = fields.Text(string='Python Code', default=DEFAULT_PYTHON_CODE,
-                       help="Write Python code that the action will execute. Some variables are "
-                            "available for use; help about python expression is given in the help tab.")
+    code = fields.Text(string='Python Code', default=IER_DEFAULT_PYTHON_CODE,
+                       help="Write Python code to return the records to export. Some variables are available for use.")
 
     line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
 
