@@ -55,7 +55,7 @@ class IERTemplateLine(models.Model):
     line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
 
     def name_get(self):
-        return [(record.id, f'{record.ir_exports_id.name} [{record.model_id.name}]') for record in self]
+        return [(record.id, f'{record.ir_exports_id.name} ({record.model_id.name})') for record in self]
 
     @api.constrains('code')
     def _check_python_code(self):
@@ -91,10 +91,12 @@ class IERTemplateLine(models.Model):
         fields_value = [field['value'] for field in fields]
         for field in fields:
             if field['field_type'] in ['many2one', 'many2many']:
-                # sub_fields = (Export().get_fields(model=field['params']['model']))
                 fields_value += [field['id'], field['id'] + '/id', field['id'] + '/name']
             elif field['field_type'] in ['one2many']:
                 sub_fields = (Export().get_fields(model=field['params']['model']))
+                for sub_field in sub_fields:
+                    if sub_field['field_type'] in ['many2one', 'many2many']:
+                        fields_value += [field['id'] + '/' + sub_field['value'], field['id'] + '/' + sub_field['value'].replace('/id', '') + '/name']
                 sub_fields_value = [field['id'] + '/' + sub_field['value'] for sub_field in sub_fields if sub_field['field_type'] not in ['many2one', 'many2many', 'one2many'] and sub_field['id'] != 'id']
                 fields_value += sub_fields_value + [field['id']]
         return fields_value
