@@ -13,9 +13,20 @@
                     <field name="warning_html" readonly="1"/>
                 </div>
                 <sheet>
-                    <group>
+                    <group string="File" name="file">
                         <field name="zip_file" filename="zip_file_name"/>
                         <field name="zip_file_name" invisible="1"/>
+                    </group>
+                    <group string="Archive Information" name="archive_info">
+                        <group>
+                            <field name="manifest_datetime"/>
+                            <field name="manifest_dbname"/>
+                        </group>
+                        <group>
+                            <field name="manifest_username"/>
+                            <field name="manifest_userlogin"/>
+                        </group>
+                        <field name="manifest_export" nolabel="1" colspan="2"/>
                     </group>
                     <footer>
                         <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('zip_file', '=', False)]}"/>

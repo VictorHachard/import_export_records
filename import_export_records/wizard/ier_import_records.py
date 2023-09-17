@@ -2,9 +2,10 @@
 import base64
 import csv
 import io
+import json
 import zipfile
 
-from odoo import models, fields, exceptions, _
+from odoo import models, fields, exceptions, _, api
 
 
 class IERImportWizard(models.TransientModel):
@@ -16,6 +17,13 @@ class IERImportWizard(models.TransientModel):
 
     error_html = fields.Html(default="<p></p>")
     warning_html = fields.Html(default="<p></p>")
+
+    # Manifest
+    manifest_datetime = fields.Datetime(readonly=True)
+    manifest_dbname = fields.Char(readonly=True)
+    manifest_username = fields.Char(readonly=True)
+    manifest_userlogin = fields.Char(readonly=True)
+    manifest_export = fields.Html(readonly=True)
 
     def _import_record_and_execute(self, model, decoded_csv, fields):
         """
@@ -35,8 +43,39 @@ class IERImportWizard(models.TransientModel):
         )
         return result
 
+    @api.onchange('zip_file')
+    def _onchange_zip_file(self):
+        if self.zip_file:
+            decoded_zip = base64.b64decode(self.zip_file)
+            io_bytes_zip = io.BytesIO(decoded_zip)
+
+            if zipfile.is_zipfile(io_bytes_zip):
+                with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
+                    manifest_content = next((archive.read(name) for name in archive.namelist() if name == "manifest.json"), None)
+                    if manifest_content is not None:
+                        self._set_manifest_field(json.loads(manifest_content))
+
+    def _set_manifest_field(self, data):
+        def wrap_field_with_badge(field):
+            return f'<span class="badge ier_badge">{field}</span>'
+        table_html = '<table>'
+        table_html += '<tr><th>Export Name</th><th>Model Name</th><th>Fields</th></tr>'
+        for export in data.get('ir_exports', []):
+            export_name = export.get('name', '')
+            model_name = export.get('model_name', '')
+            field = ''.join([wrap_field_with_badge(field) for field in export.get('fields', [])])
+            table_html += f'<tr><td>{export_name}</td><td>{model_name}</td><td>{field}</td></tr>'
+        table_html += '</table>'
+
+        self.update({
+            'manifest_datetime': data.get('datetime', False),
+            'manifest_dbname': data.get('dbname', ''),
+            'manifest_username': data.get('username', ''),
+            'manifest_userlogin': data.get('userlogin', ''),
+            'manifest_export': table_html,
+        })
+
     def import_action(self):
-        # TODO: delete zip file after import
         if self.zip_file:
             error_html = "<p></p>"
             warning_html = "<p></p>"

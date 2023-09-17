@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import io
+import json
 import zipfile
 from datetime import datetime, timezone
 
@@ -30,19 +31,37 @@ class IERTemplate(models.Model):
         datetime_str = datetime.now(timezone.utc).astimezone(pytz.timezone(tz)).strftime(strftime_pattern)
         return datetime_str
 
+    def _get_manifest(self):
+        active_lines = self.lines.filtered(lambda l: l.active)
+        return {
+            'datetime': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'dbname': self.env.cr.dbname,
+            'username': self.env.user.name,
+            'userlogin': self.env.user.login,
+            'ir_exports': [{
+                'name': e.name,
+                'model_name': e.resource,
+                'fields': e.export_fields.mapped('name'),
+            } for e in active_lines.mapped('ir_exports_id')],
+        }
+
     def export(self):
         """
         Prepares and exports data in CSV format for current template.
         It then compresses the CSV files into a ZIP archive and creates an attachment for download.
         """
         self.lines._check_ir_exports_id()
+        datetime_str = self._get_user_formatted_datetime()
+        manifest = self._get_manifest()
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, mode="w") as zip_archive:
             for line in self.lines.filtered(lambda l: l.active):
-                zip_archive.writestr(line.file_name + '.csv', line.export_files())
+                date, record_count = line.export_files()
+                zip_archive.writestr(line.file_name + '.csv', date)
+            zip_archive.writestr('manifest.json', json.dumps(manifest, indent=2))
 
-        zip_filename = self.name.lower().replace(' ', '-') + '-' + self._get_user_formatted_datetime() + '.zip'
+        zip_filename = self.name.lower().replace(' ', '-') + '-' + datetime_str + '.zip'
 
         attachment_id = self.env['ir.attachment'].create({
             'name': zip_filename,

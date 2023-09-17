@@ -14,7 +14,7 @@
                         <h1><field name="name" placeholder="e.g. Sale Order"/></h1>
                     </div>
                     <notebook>
-                        <page string="Template Line">
+                        <page string="Template Line" name="lines">
                             <field name="lines" mode="tree,form">
                                 <form>
                                     <group>
@@ -47,7 +47,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Help">
+                        <page string="Help" name="help">
                             <p>
                                 The export template must be a <b>import-compatible export</b> and should not contain fields nested more than two levels deep.
                             </p>

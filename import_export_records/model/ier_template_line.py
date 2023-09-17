@@ -149,7 +149,7 @@ class IERTemplateLine(models.Model):
             records = model.search(self._get_domain())
 
         datas = records.export_data(self._get_export_fields()).get('datas', [])
-        return datas
+        return datas, len(records)
 
     def export_files(self):
         """
@@ -161,14 +161,14 @@ class IERTemplateLine(models.Model):
         csv_file = io.StringIO()
         writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-        datas = self._export_template()
+        datas, record_count = self._export_template()
         writer.writerows([self._get_export_fields()])
         for data in datas:
             row = []
             for d in data:
                 row.append(pycompat.to_text(d))
             writer.writerow(row)
-        return csv_file.getvalue()
+        return csv_file.getvalue(), record_count
 
     @api.model
     def _get_eval_context(self):
