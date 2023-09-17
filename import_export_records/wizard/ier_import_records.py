@@ -20,11 +20,12 @@ class IERImportWizard(models.TransientModel):
     success_html = fields.Html()
 
     # Manifest
-    manifest_datetime = fields.Datetime(readonly=True)
-    manifest_dbname = fields.Char(readonly=True)
-    manifest_username = fields.Char(readonly=True)
-    manifest_userlogin = fields.Char(readonly=True)
-    manifest_export = fields.Html(readonly=True)
+    is_importable = fields.Boolean(compute='_compute_manifest_data', store=True)
+    manifest_datetime = fields.Datetime(compute='_compute_manifest_data', string='Created At', store=True)
+    manifest_dbname = fields.Char(compute='_compute_manifest_data', string='From Database', store=True)
+    manifest_username = fields.Char(compute='_compute_manifest_data', string='By User', store=True)
+    manifest_userlogin = fields.Char(compute='_compute_manifest_data', store=True)
+    manifest_export = fields.Html(compute='_compute_manifest_data', store=True)
 
     def _reopen_self(self):
         return {
@@ -54,17 +55,26 @@ class IERImportWizard(models.TransientModel):
         )
         return result
 
-    @api.onchange('zip_file')
-    def _onchange_zip_file(self):
-        if self.zip_file:
-            decoded_zip = base64.b64decode(self.zip_file)
-            io_bytes_zip = io.BytesIO(decoded_zip)
+    @api.depends('zip_file')
+    def _compute_manifest_data(self):
+        for rec in self:
+            rec.update({
+                'manifest_datetime': False,
+                'manifest_dbname': '',
+                'manifest_username': '',
+                'manifest_userlogin': '',
+                'manifest_export': '',
+                'is_importable': False,
+            })
+            if rec.zip_file:
+                decoded_zip = base64.b64decode(rec.zip_file)
+                io_bytes_zip = io.BytesIO(decoded_zip)
 
-            if zipfile.is_zipfile(io_bytes_zip):
-                with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
-                    manifest_content = next((archive.read(name) for name in archive.namelist() if name == "manifest.json"), None)
-                    if manifest_content is not None:
-                        self._set_manifest_field(json.loads(manifest_content))
+                if zipfile.is_zipfile(io_bytes_zip):
+                    with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
+                        manifest_content = next((archive.read(name) for name in archive.namelist() if name == "manifest.json"), None)
+                        if manifest_content is not None:
+                            rec._set_manifest_field(json.loads(manifest_content))
 
     def _set_manifest_field(self, data):
         def wrap_field_with_badge(field):
@@ -84,12 +94,13 @@ class IERImportWizard(models.TransientModel):
             'manifest_username': data.get('username', ''),
             'manifest_userlogin': data.get('userlogin', ''),
             'manifest_export': table_html,
+            'is_importable': True,
         })
 
     def import_action(self):
         if self.zip_file:
-            error_html = "<p></p>"
-            warning_html = "<p></p>"
+            self.success_html = False
+            error_html, warning_html = '', ''
 
             record_count = 0
             decoded_zip = base64.b64decode(self.zip_file)
@@ -120,7 +131,6 @@ class IERImportWizard(models.TransientModel):
                                 else:
                                     error_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
 
-                    # Create the complete HTML message
                     self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
                     self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
             self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"

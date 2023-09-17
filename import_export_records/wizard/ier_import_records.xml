@@ -6,33 +6,35 @@
         <field name="model">ier.import.wizard</field>
         <field name="arch" type="xml">
             <form class="ier_import_wizard">
-                <div class="alert alert-success oe_edit_only" role="alert" attrs="{'invisible': [('success_html', '=', '')]}">
+                <div class="alert alert-success oe_edit_only" role="alert" attrs="{'invisible': [('success_html', '=', False)]}">
                     <field name="success_html" readonly="1"/>
                 </div>
-                <div class="alert alert-danger oe_edit_only" role="alert" attrs="{'invisible': [('error_html', '=', '')]}">
+                <div class="alert alert-danger oe_edit_only" role="alert" attrs="{'invisible': [('error_html', '=', False)]}">
                     <field name="error_html" readonly="1"/>
                 </div>
-                <div class="alert alert-warning oe_edit_only" role="alert" attrs="{'invisible': [('warning_html', '=', '')]}">
+                <div class="alert alert-warning oe_edit_only" role="alert" attrs="{'invisible': [('warning_html', '=', False)]}">
                     <field name="warning_html" readonly="1"/>
                 </div>
                 <sheet>
+                    <field name="is_importable" invisible="1"/>
                     <group string="File" name="file">
-                        <field name="zip_file" filename="zip_file_name"/>
+                        <field name="zip_file" filename="zip_file_name" widget="binary"/>
                         <field name="zip_file_name" invisible="1"/>
                     </group>
                     <group string="Archive Information" name="archive_info">
                         <group>
-                            <field name="manifest_datetime" force_save="1"/>
-                            <field name="manifest_dbname" force_save="1"/>
+                            <field name="manifest_datetime"/>
+                            <field name="manifest_dbname"/>
+                            <label string="By User" for="manifest_username"/>
+                            <div name="manifest_username">
+                                <field class="oe_inline" name="manifest_username" nolabel="1"/>
+                                <span attrs="{'invisible': [('manifest_userlogin', '=', '')]}"> (</span><field class="oe_inline" name="manifest_userlogin" nolabel="1"/><span attrs="{'invisible': [('manifest_userlogin', '=', '')]}">)</span>
+                            </div>
                         </group>
-                        <group>
-                            <field name="manifest_username" force_save="1"/>
-                            <field name="manifest_userlogin" force_save="1"/>
-                        </group>
-                        <field name="manifest_export" nolabel="1" colspan="2" force_save="1"/>
+                        <field name="manifest_export" nolabel="1" colspan="2"/>
                     </group>
                     <footer>
-                        <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('zip_file', '=', False)]}"/>
+                        <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('is_importable', '=', False)]}"/>
                         <button special="cancel" string="Cancel"/>
                     </footer>
                 </sheet>
