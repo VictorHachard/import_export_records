@@ -13,10 +13,11 @@ class IERImportWizard(models.TransientModel):
     _description = 'IER Import Wizard'
 
     zip_file = fields.Binary(string='Upload your File', required=True)
-    zip_file_name = fields.Char("File Name", readonly=True)
+    zip_file_name = fields.Char("File Name")
 
-    error_html = fields.Html(default="<p></p>")
-    warning_html = fields.Html(default="<p></p>")
+    error_html = fields.Html()
+    warning_html = fields.Html()
+    success_html = fields.Html()
 
     # Manifest
     manifest_datetime = fields.Datetime(readonly=True)
@@ -24,6 +25,16 @@ class IERImportWizard(models.TransientModel):
     manifest_username = fields.Char(readonly=True)
     manifest_userlogin = fields.Char(readonly=True)
     manifest_export = fields.Html(readonly=True)
+
+    def _reopen_self(self):
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "res_id": self.id,
+            "name": self._description,
+            "view_mode": "form",
+            "target": "new",
+        }
 
     def _import_record_and_execute(self, model, decoded_csv, fields):
         """
@@ -86,7 +97,7 @@ class IERImportWizard(models.TransientModel):
 
             if zipfile.is_zipfile(io_bytes_zip):
                 with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
-                    csv_files = {name: archive.read(name) for name in archive.namelist()}
+                    csv_files = {name: archive.read(name) for name in archive.namelist() if '.csv' in archive.namelist()}
                 for model, csv_file in csv_files.items():
                     decoded_csv = csv_file.decode()
                     io_string_csv = io.StringIO(decoded_csv)
@@ -112,13 +123,5 @@ class IERImportWizard(models.TransientModel):
                     # Create the complete HTML message
                     self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
                     self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
-
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'type': 'warning',
-                    'message': _('%s records successfully imported', str(record_count)),
-                    'sticky': False,
-                }
-            }
+            self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"
+            return self._reopen_self()

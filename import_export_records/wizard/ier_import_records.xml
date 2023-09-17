@@ -6,6 +6,9 @@
         <field name="model">ier.import.wizard</field>
         <field name="arch" type="xml">
             <form class="ier_import_wizard">
+                <div class="alert alert-success oe_edit_only" role="alert" attrs="{'invisible': [('success_html', '=', '')]}">
+                    <field name="success_html" readonly="1"/>
+                </div>
                 <div class="alert alert-danger oe_edit_only" role="alert" attrs="{'invisible': [('error_html', '=', '')]}">
                     <field name="error_html" readonly="1"/>
                 </div>
@@ -19,14 +22,14 @@
                     </group>
                     <group string="Archive Information" name="archive_info">
                         <group>
-                            <field name="manifest_datetime"/>
-                            <field name="manifest_dbname"/>
+                            <field name="manifest_datetime" force_save="1"/>
+                            <field name="manifest_dbname" force_save="1"/>
                         </group>
                         <group>
-                            <field name="manifest_username"/>
-                            <field name="manifest_userlogin"/>
+                            <field name="manifest_username" force_save="1"/>
+                            <field name="manifest_userlogin" force_save="1"/>
                         </group>
-                        <field name="manifest_export" nolabel="1" colspan="2"/>
+                        <field name="manifest_export" nolabel="1" colspan="2" force_save="1"/>
                     </group>
                     <footer>
                         <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('zip_file', '=', False)]}"/>
