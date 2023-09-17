@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from odoo import models, fields, _, api
 from odoo.exceptions import UserError
-from odoo.tools import pytz
+from odoo.tools import pytz, get_lang
 
 
 class IERTemplate(models.Model):
@@ -16,12 +16,19 @@ class IERTemplate(models.Model):
     name = fields.Char(required=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
     model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
-    import_compat = fields.Boolean(string='Import Compatible Export', default=False)
 
     @api.depends('lines.model_id')
     def _compute_model_ids(self):
         for rec in self:
             rec.model_ids = rec.lines.model_id.ids
+
+    def _get_user_formatted_datetime(self):
+        """ Get the current datetime formatted string according to the user's time zone and language settings. """
+        tz = self.env.context.get('tz', 'UTC')
+        lang = get_lang(self.env)
+        strftime_pattern = ("%s-%s" % (lang.date_format, lang.time_format)).replace('_', '-')
+        datetime_str = datetime.now(timezone.utc).astimezone(pytz.timezone(tz)).strftime(strftime_pattern)
+        return datetime_str
 
     def export(self):
         """
@@ -35,8 +42,7 @@ class IERTemplate(models.Model):
             for line in self.lines.filtered(lambda l: l.active):
                 zip_archive.writestr(line.file_name + '.csv', line.export_files())
 
-        datetime_str = datetime.now(timezone.utc).astimezone(pytz.timezone('Europe/Brussels')).strftime("%Y%m%d-%H%M%S")
-        zip_filename = self.name.lower().replace(' ', '-') + '-' + datetime_str + '.zip'
+        zip_filename = self.name.lower().replace(' ', '-') + '-' + self._get_user_formatted_datetime() + '.zip'
 
         attachment_id = self.env['ir.attachment'].create({
             'name': zip_filename,
@@ -44,18 +50,17 @@ class IERTemplate(models.Model):
             'res_model': 'ier.template',
             'res_id': self.id
         })
-        self.env['ir.attachment']._file_delete(attachment_id.store_fname)  # TODO: test this
+        self.env['ir.attachment']._file_delete(attachment_id.store_fname)
 
         return {
             'type': 'ir.actions.act_url',
-            'url': "web/content/?model=ir.attachment&id=" + str(
-                attachment_id.id) + "&filename_field=name&field=datas&download=true&name=" + attachment_id.name,
+            'url': "web/content/?model=ir.attachment&id=" + str(attachment_id.id) +
+                   "&filename_field=name&field=datas&download=true&name=" + attachment_id.name,
             'target': 'self',
         }
 
     def copy_data(self, default=None):
-        if default is None:
-            default = {}
+        default = dict(default or {})
         if 'lines' not in default:
             default['lines'] = [(0, 0, line.copy_data()[0]) for line in self.lines]
         return super().copy_data(default)
