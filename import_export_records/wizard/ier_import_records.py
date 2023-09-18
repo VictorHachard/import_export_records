@@ -108,30 +108,30 @@ class IERImportWizard(models.TransientModel):
 
             if zipfile.is_zipfile(io_bytes_zip):
                 with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
-                    csv_files = {name: archive.read(name) for name in archive.namelist() if '.csv' in archive.namelist()}
-                for model, csv_file in csv_files.items():
-                    decoded_csv = csv_file.decode()
-                    io_string_csv = io.StringIO(decoded_csv)
-                    csvreader = csv.reader(io_string_csv)
-                    headers = next(csvreader)
-                    model_name = '.'.join(model.split('.')[1:-1])
-                    result = self._import_record_and_execute(model_name, decoded_csv, headers)
-                    record_count += len(result['ids']) if result['ids'] else 0
+                    csv_files = {name: archive.read(name) for name in archive.namelist() if '.csv' in name}
+                    for model, csv_file in csv_files.items():
+                        decoded_csv = csv_file.decode()
+                        io_string_csv = io.StringIO(decoded_csv)
+                        csvreader = csv.reader(io_string_csv)
+                        headers = next(csvreader)
+                        model_name = '.'.join(model.split('.')[1:-1])
+                        result = self._import_record_and_execute(model_name, decoded_csv, headers)
+                        record_count += len(result['ids']) if result['ids'] else 0
 
-                    if result and 'messages' in result and len(result['messages']) > 0:
-                        for msg in result['messages']:
-                            if msg['type'] == 'warning':
-                                if msg['field']:
-                                    warning_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
+                        if result and 'messages' in result and len(result['messages']) > 0:
+                            for msg in result['messages']:
+                                if msg['type'] == 'warning':
+                                    if msg['field']:
+                                        warning_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
+                                    else:
+                                        warning_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
                                 else:
-                                    warning_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
-                            else:
-                                if msg['field']:
-                                    error_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
-                                else:
-                                    error_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
+                                    if msg['field']:
+                                        error_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
+                                    else:
+                                        error_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
 
-                    self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
-                    self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
+                        self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
+                        self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
             self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"
             return self._reopen_self()
