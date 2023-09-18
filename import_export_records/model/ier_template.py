@@ -6,8 +6,18 @@ import zipfile
 from datetime import datetime, timezone
 
 from odoo import models, fields, _, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import pytz, get_lang
+from odoo.tools.safe_eval import test_python_expr
+
+
+IER_DEFAULT_PYTHON_CODE = """# Available variables:
+#  - env
+#  - records_by_model: recordset by model of all imported records; may be void, e.g. {'sale_order': records, ...}
+#  - time, datetime, dateutil, timezone: useful Python libraries
+#  - float_compare: Odoo function to compare floats based on specific precisions
+#  - UserError: Warning Exception to use with raise
+#  - uid, user: current user id and user record\n\n"""
 
 
 class IERTemplate(models.Model):
@@ -17,6 +27,15 @@ class IERTemplate(models.Model):
     name = fields.Char(required=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
     model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
+    post_process_code = fields.Text(string='Python Code', default=IER_DEFAULT_PYTHON_CODE,
+                                    help="Write Python code to execute after the importation of the records. Some variables are available for use.")
+
+    @api.constrains('post_process_code')
+    def _check_python_code(self):
+        for action in self.sudo().filtered('post_process_code'):
+            msg = test_python_expr(expr=action.post_process_code.strip(), mode="exec")
+            if msg:
+                raise ValidationError(msg)
 
     @api.depends('lines.model_id')
     def _compute_model_ids(self):
@@ -43,6 +62,7 @@ class IERTemplate(models.Model):
                 'model_name': e.resource,
                 'fields': e.export_fields.mapped('name'),
             } for e in active_lines.mapped('ir_exports_id')],
+            'post_process_code': self.post_process_code,
         }
 
     def export(self):
@@ -53,12 +73,15 @@ class IERTemplate(models.Model):
         self.lines._check_ir_exports_id()
         datetime_str = self._get_user_formatted_datetime()
         manifest = self._get_manifest()
+        record_count_total = 0
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, mode="w") as zip_archive:
             for line in self.lines.filtered(lambda l: l.active):
                 date, record_count = line.export_files()
+                record_count_total += record_count
                 zip_archive.writestr(line.file_name + '.csv', date)
+            manifest['record_count'] = record_count_total
             zip_archive.writestr('manifest.json', json.dumps(manifest, indent=2))
 
         zip_filename = self.name.lower().replace(' ', '-') + '-' + datetime_str + '.zip'

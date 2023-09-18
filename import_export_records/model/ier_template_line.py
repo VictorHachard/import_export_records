@@ -152,10 +152,7 @@ class IERTemplateLine(models.Model):
         return datas, len(records)
 
     def export_files(self):
-        """
-
-        Exports data in CSV format based on the export configuration defined in the current record.
-        """
+        """ Exports data in CSV format based on the export configuration defined in the current record. """
         self.ensure_one()
 
         csv_file = io.StringIO()

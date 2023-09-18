@@ -30,8 +30,14 @@
                                 <field class="oe_inline" name="manifest_username" nolabel="1"/>
                                 <span attrs="{'invisible': [('manifest_userlogin', '=', '')]}"> (</span><field class="oe_inline" name="manifest_userlogin" nolabel="1"/><span attrs="{'invisible': [('manifest_userlogin', '=', '')]}">)</span>
                             </div>
+                            <label string="For a total of" for="manifest_record_count"/>
+                            <div name="manifest_record_count">
+                                <field class="oe_inline" name="manifest_record_count" nolabel="1"/>
+                                <span attrs="{'invisible': [('manifest_record_count', '=', 0)]}"> records</span>
+                            </div>
                         </group>
                         <field name="manifest_export" nolabel="1" colspan="2"/>
+                        <field name="manifest_post_process_code" nolabel="1" colspan="2"/>
                     </group>
                     <footer>
                         <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('is_importable', '=', False)]}"/>

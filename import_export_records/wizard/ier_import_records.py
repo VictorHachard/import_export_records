@@ -26,6 +26,8 @@ class IERImportWizard(models.TransientModel):
     manifest_username = fields.Char(compute='_compute_manifest_data', string='By User', store=True)
     manifest_userlogin = fields.Char(compute='_compute_manifest_data', store=True)
     manifest_export = fields.Html(compute='_compute_manifest_data', store=True)
+    manifest_record_count = fields.Integer(compute='_compute_manifest_data', store=True)
+    manifest_post_process_code = fields.Text(compute='_compute_manifest_data', store=True)
 
     def _reopen_self(self):
         return {
@@ -64,6 +66,8 @@ class IERImportWizard(models.TransientModel):
                 'manifest_username': '',
                 'manifest_userlogin': '',
                 'manifest_export': '',
+                'manifest_record_count': 0,
+                'manifest_post_process_code': '',
                 'is_importable': False,
             })
             if rec.zip_file:
@@ -94,6 +98,8 @@ class IERImportWizard(models.TransientModel):
             'manifest_username': data.get('username', ''),
             'manifest_userlogin': data.get('userlogin', ''),
             'manifest_export': table_html,
+            'manifest_record_count': data.get('record_count', 0),
+            'manifest_post_process_code': data.get('post_process_code', ''),
             'is_importable': True,
         })
 
