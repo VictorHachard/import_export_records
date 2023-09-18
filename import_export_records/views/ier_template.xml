@@ -17,7 +17,10 @@
                         <field name="active"/>
                     </group>
                     <notebook>
-                        <page string="Template Line" name="lines">
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Add a description..." nolabel="1" colspan="2"/>
+                        </page>
+                        <page string="Template Line" name="lines" autofocus="autofocus">
                             <field name="lines" mode="tree,form">
                                 <form>
                                     <group>
@@ -80,10 +83,11 @@
         <field name="name">ier.template.view.tree</field>
         <field name="model">ier.template</field>
         <field name="arch" type="xml">
-            <tree decoration-muted="(not active)">
+            <tree class="ier_template_tree" decoration-muted="(not active)">
                 <field name="active" invisible="1"/>
 
                 <field name="display_name" string="Name"/>
+                <field name="description" widget="char" class="text-truncate"/>
                 <field name="lines" widget="many2many_tags"/>
                 <field name="model_ids" widget="many2many_tags" optional="show"/>
                 <field name="user_id" widget="many2one_avatar" optional="show"/>

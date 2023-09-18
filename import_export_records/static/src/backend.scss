@@ -1,31 +1,42 @@
-.ier_import_wizard div[name='error_html'] td,
-.ier_import_wizard div[name='error_html'] th,
-.ier_import_wizard div[name='warning_html'] td,
-.ier_import_wizard div[name='warning_html'] th,
-.ier_import_wizard div[name='manifest_export'] td,
-.ier_import_wizard div[name='manifest_export'] th {
-    border-width: 0;
-    padding: 2px 8px;
-    border-width: thin;
+.ier_import_wizard {
+    div[name='error_html'] td,
+    div[name='error_html'] th,
+    div[name='warning_html'] td,
+    div[name='warning_html'] th,
+    div[name='manifest_export'] td,
+    div[name='manifest_export'] th {
+        border-width: 0;
+        padding: 2px 8px;
+        border-width: thin;
+    }
+    div[name='error_html'] table,
+    div[name='warning_html'] table,
+    div[name='manifest_export'] table, {
+        width: 100%;
+    }
+    .o_form_sheet_bg .alert {
+        margin-bottom: 0;
+        border-radius: 0;
+        border: 0;
+    }
+    .ier_badge {
+        border: 1px solid #777777;
+        border-radius: 50rem !important;
+        color: #777777;
+        margin-right: 2px;
+        font-size: 0.90em;
+    }
+    label[for='manifest_export'],
+    label[for='manifest_post_process_code'] {
+        font-weight: 500 !important;
+    }
 }
-.ier_import_wizard div[name='error_html'] table,
-.ier_import_wizard div[name='warning_html'] table,
-.ier_import_wizard div[name='manifest_export'] table, {
-    width: 100%;
-}
-.ier_import_wizard .o_form_sheet_bg .alert {
-    margin-bottom: 0;
-    border-radius: 0;
-    border: 0;
-}
-.ier_import_wizard .ier_badge {
-    border: 1px solid #777777;
-    border-radius: 50rem !important;
-    color: #777777;
-    margin-right: 2px;
-    font-size: 0.90em;
-}
-.ier_import_wizard label[for='manifest_export'],
-.ier_import_wizard label[for='manifest_post_process_code'] {
-    font-weight: 500 !important;
+
+.ier_template_tree {
+    th[data-name='description'] {
+        max-width: 200px !important;
+    }
+    td[name='description'] div[name='description'] {
+        display: inline !important;
+    }
 }

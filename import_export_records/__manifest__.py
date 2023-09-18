@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Import Export Records",
-    'summary': "Simplify multi-model record export with templates and filters.",
-    'description': "This module simplifies the process of exporting multiple records from various models by providing a flexible template-based approach, allowing users to define export templates and filter records using domains.",
+    'name': "Batch Record Import/Export with Template",
+    'summary': "Streamline record exports across multiple models using templates and filters.",
+    'description':
+        """
+This module simplifies the process of exporting multiple records from various models by offering a versatile template-based approach.
+Users can create export templates and apply filters based on specific domains, making record management more efficient and tailored to your needs.
+""",
     'category': 'Technical',
-    'version': '1.2.0',
+    'version': '1.2.1',
     'author': "Victor",
     'license': 'LGPL-3',
     'depends': ['base'],

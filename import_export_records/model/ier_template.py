@@ -25,6 +25,7 @@ class IERTemplate(models.Model):
     _description = 'IER Template'
 
     name = fields.Char(required=True)
+    description = fields.Text()
     active = fields.Boolean(default=True)
     user_id = fields.Many2one('res.users', default=lambda self: self.env.user, readonly=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
