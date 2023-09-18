@@ -25,3 +25,7 @@
     margin-right: 2px;
     font-size: 0.90em;
 }
+.ier_import_wizard label[for='manifest_export'],
+.ier_import_wizard label[for='manifest_post_process_code'] {
+    font-weight: 500 !important;
+}

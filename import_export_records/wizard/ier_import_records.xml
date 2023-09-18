@@ -20,6 +20,7 @@
                     <group string="File" name="file">
                         <field name="zip_file" filename="zip_file_name" widget="binary"/>
                         <field name="zip_file_name" invisible="1"/>
+                        <field name="run_post_process_code"/>
                     </group>
                     <group string="Archive Information" name="archive_info">
                         <group>
@@ -33,11 +34,15 @@
                             <label string="For a total of" for="manifest_record_count"/>
                             <div name="manifest_record_count">
                                 <field class="oe_inline" name="manifest_record_count" nolabel="1"/>
-                                <span attrs="{'invisible': [('manifest_record_count', '=', 0)]}"> records</span>
+                                <span attrs="{'invisible': [('manifest_record_count', '!=', 1)]}"> record</span>
+                                <span attrs="{'invisible': [('manifest_record_count', '&lt;=', 1)]}"> records</span>
                             </div>
                         </group>
+                        <label for="manifest_export" class="text-900" string="Exports Template"/>
                         <field name="manifest_export" nolabel="1" colspan="2"/>
-                        <field name="manifest_post_process_code" nolabel="1" colspan="2"/>
+                        <label for="manifest_post_process_code" class="text-900" string="Post Process Code"/>
+                        <field name="manifest_post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"
+                               placeholder="Enter Python code here. Help about Python expression is available in the help tab of this document."/>
                     </group>
                     <footer>
                         <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('is_importable', '=', False)]}"/>

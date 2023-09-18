@@ -13,7 +13,7 @@ from odoo.tools.safe_eval import test_python_expr
 
 IER_DEFAULT_PYTHON_CODE = """# Available variables:
 #  - env
-#  - records_by_model: recordset by model of all imported records; may be void, e.g. {'sale_order': records, ...}
+#  - records_by_model: recordset by model of all imported records; may be void, e.g. {'sale.order': records, ...}
 #  - time, datetime, dateutil, timezone: useful Python libraries
 #  - float_compare: Odoo function to compare floats based on specific precisions
 #  - UserError: Warning Exception to use with raise
@@ -25,10 +25,12 @@ class IERTemplate(models.Model):
     _description = 'IER Template'
 
     name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
+    user_id = fields.Many2one('res.users', default=lambda self: self.env.user, readonly=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
     model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
-    post_process_code = fields.Text(string='Python Code', default=IER_DEFAULT_PYTHON_CODE,
-                                    help="Write Python code to execute after the importation of the records. Some variables are available for use.")
+    post_process_code = fields.Text(string='Post Process Python Code', default=IER_DEFAULT_PYTHON_CODE,
+                                    help="The post-processing code will execute once all records have been imported. You can choose whether it needs to run during the import process.")
 
     @api.constrains('post_process_code')
     def _check_python_code(self):

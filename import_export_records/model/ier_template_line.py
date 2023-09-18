@@ -37,21 +37,22 @@ class IERTemplateLine(models.Model):
         record = self.search([], limit=1, order="sequence DESC")
         return record.sequence + 1 if record else 1
 
-    sequence = fields.Integer(default=_default_sequence)
-    ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade')
+    sequence = fields.Integer(default=_default_sequence,
+                              help='The order of the line is important. If one line depends on another, make sure to place the dependent line above the one it relies on.')
+    active = fields.Boolean(default=True, help='Only active lines will be included in the export.')
+    ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade',
+                                      help='The export template must be a import-compatible export and should not contain fields nested more than two levels deep.')
     ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template',
                                     ondelete='cascade')
-
-    active = fields.Boolean(default=True)
 
     model_id = fields.Many2one('ir.model', compute='_compute_model_id', store=True)
     model_name = fields.Char(compute='_compute_model_id', store=True)
     file_name = fields.Char(compute='_compute_file_name', store=True)
 
     mode = fields.Selection([('easy', 'Simple'), ('advanced', 'Advanced')], required=True, default='easy')
-    filter_domain = fields.Char()
+    filter_domain = fields.Char(help='domain to select the records for exporting')
     code = fields.Text(string='Python Code', default=IER_DEFAULT_PYTHON_CODE,
-                       help="Write Python code to return the records to export. Some variables are available for use.")
+                       help="Python code to select the records for exporting.")
 
     line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
 

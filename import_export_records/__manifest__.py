@@ -19,7 +19,7 @@
 
         'views/ier_template.xml',
 
-        'views/menu.xml',
+        'views/ier_menu.xml',
     ],
     'assets': {
         'web.assets_backend': [
