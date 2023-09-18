@@ -131,7 +131,7 @@ class IERImportWizard(models.TransientModel):
                                     else:
                                         error_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
 
-                        self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
-                        self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
+            self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
+            self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
             self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"
             return self._reopen_self()
