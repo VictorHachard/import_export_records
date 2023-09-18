@@ -4,7 +4,7 @@
     'summary': "Simplify multi-model record export with templates and filters.",
     'description': "This module simplifies the process of exporting multiple records from various models by providing a flexible template-based approach, allowing users to define export templates and filter records using domains.",
     'category': 'Technical',
-    'version': '1.1.1',
+    'version': '1.2.0',
     'author': "Victor",
     'license': 'LGPL-3',
     'depends': ['base'],
