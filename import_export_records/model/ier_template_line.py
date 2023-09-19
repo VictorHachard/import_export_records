@@ -40,21 +40,21 @@ class IERTemplateLine(models.Model):
     sequence = fields.Integer(default=_default_sequence,
                               help='The order of the line is important. If one line depends on another, make sure to place the dependent line above the one it relies on.')
     active = fields.Boolean(default=True, help='Only active lines will be included in the export.')
-    ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade',
-                                      help='The export template must be a import-compatible export and should not contain fields nested more than two levels deep.')
-    ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template',
-                                    ondelete='cascade')
+    ier_template_id = fields.Many2one('ier.template', required=True, ondelete='cascade')
+    ir_exports_id = fields.Many2one('ir.exports', required=True, string='Exports Template', ondelete='cascade',
+                                    help='The export template must be a import-compatible export and should not contain fields nested more than two levels deep.')
 
     model_id = fields.Many2one('ir.model', compute='_compute_model_id', store=True)
     model_name = fields.Char(compute='_compute_model_id', store=True)
     file_name = fields.Char(compute='_compute_file_name', store=True)
 
-    mode = fields.Selection([('easy', 'Simple'), ('advanced', 'Advanced')], required=True, default='easy')
+    mode = fields.Selection([('easy', 'Simple'), ('advanced', 'Advanced')], required=True, default='easy',
+                            help='Simple mode allows you to select records based on a domain. Advanced mode allows you to write Python code to select the records for export.')
     filter_domain = fields.Char(help='domain to select the records for exporting')
     code = fields.Text(string='Python Code', default=IER_DEFAULT_PYTHON_CODE,
                        help="Python code to select the records for exporting.")
 
-    line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids')
+    line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids', help='The export fields associated with the ir.exports template.')
 
     def name_get(self):
         return [(record.id, f'{record.ir_exports_id.name} ({record.model_id.name})') for record in self]

@@ -22,6 +22,7 @@ Users can create export templates and apply filters based on specific domains, m
         'wizard/ier_import_records.xml',
 
         'views/ier_template.xml',
+        'views/ier_template_action_history.xml',
 
         'views/ier_menu.xml',
     ],

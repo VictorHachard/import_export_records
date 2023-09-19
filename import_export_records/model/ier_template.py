@@ -33,13 +33,18 @@ class IERTemplate(models.Model):
     name = fields.Char(required=True)
     description = fields.Text()
     active = fields.Boolean(default=True)
-    user_id = fields.Many2one('res.users', default=lambda self: self.env.user, readonly=True)
+    user_id = fields.Many2one('res.users', default=lambda self: self.env.user, readonly=True,
+                              help="The user who created this template.")
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
-    model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
+    model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models',
+                                 help="The models that are used in this template.")
     post_process_code = fields.Text(string='Post Process Python Code', default=IER_DEFAULT_POST_PROCESS_PYTHON_CODE,
                                     help="The post-processing code will execute once all records have been imported. You can choose whether it needs to run during the import process.")
     pre_process_code = fields.Text(string='Pre Process Python Code', default=IER_DEFAULT_PRE_PROCESS_PYTHON_CODE,
                                    help="The pre-processing code will execute before any records are imported. You can choose whether it needs to run during the import process.")
+
+    ier_template_action_history_ids = fields.One2many('ier.template.action.history', 'ier_template_id')
+    ier_template_action_history_count = fields.Integer(compute='_compute_ier_template_action_history_count')
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Template name already exists !"),
@@ -59,10 +64,24 @@ class IERTemplate(models.Model):
             if msg:
                 raise ValidationError(msg)
 
+    @api.depends('ier_template_action_history_ids')
+    def _compute_ier_template_action_history_count(self):
+        for record in self:
+            record.ier_template_action_history_count = len(record.ier_template_action_history_ids)
+
     @api.depends('lines.model_id')
     def _compute_model_ids(self):
         for rec in self:
             rec.model_ids = rec.lines.model_id.ids
+
+    def open_history(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('History'),
+            'res_model': 'ier.template.action.history',
+            'view_mode': 'tree,form',
+            'domain': [('ier_template_id', '=', self.id)],
+        }
 
     def _get_user_formatted_datetime(self):
         """ Get the current datetime formatted string according to the user's time zone and language settings. """
@@ -117,6 +136,11 @@ class IERTemplate(models.Model):
             'res_id': self.id
         })
         self.env['ir.attachment']._file_delete(attachment_id.store_fname)
+
+        self.env['ier.template.action.history'].create({
+            'type': 'export',
+            'ier_template_id': self.id,
+        })
 
         return {
             'type': 'ir.actions.act_url',

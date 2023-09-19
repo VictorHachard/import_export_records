@@ -161,6 +161,12 @@ class IERImportWizard(models.TransientModel):
             self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
             self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
             self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"
+
+            self.env['ier.template.action.history'].create({
+                'type': 'import',
+                'template_name': self.zip_file_name,
+            })
+
             return self._reopen_self()
 
     @api.model

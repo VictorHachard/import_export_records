@@ -10,12 +10,15 @@
                     <button name="export" string="Export" type="object" class="btn-primary"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_history" type="object" class="oe_stat_button" icon="fa-history"
+                            attrs="{'invisible': [('ier_template_action_history_count', '=', 0)]}">
+                            <field name="ier_template_action_history_count" widget="statinfo" string="History"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1><field name="name" placeholder="e.g. Sale Order"/></h1>
                     </div>
-                    <group>
-                        <field name="active"/>
-                    </group>
                     <notebook>
                         <page string="Description" name="description">
                             <field name="description" placeholder="Add a description..." nolabel="1" colspan="2"/>
@@ -57,6 +60,12 @@
                         </page>
                         <page string="Post Process Code" name="post_process">
                             <field name="post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
+                        </page>
+                        <page string="Other Info" name="other_info">
+                            <group>
+                                <field name="active"/>
+                                <field name="user_id" widget="many2one_avatar"/>
+                            </group>
                         </page>
                         <page string="Help" name="help">
                             <ul>
