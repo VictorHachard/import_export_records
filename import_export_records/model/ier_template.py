@@ -33,6 +33,10 @@ class IERTemplate(models.Model):
     post_process_code = fields.Text(string='Post Process Python Code', default=IER_DEFAULT_PYTHON_CODE,
                                     help="The post-processing code will execute once all records have been imported. You can choose whether it needs to run during the import process.")
 
+    _sql_constraints = [
+        ('name_uniq', 'unique (name)', "Template name already exists !"),
+    ]
+
     @api.constrains('post_process_code')
     def _check_python_code(self):
         for action in self.sudo().filtered('post_process_code'):
