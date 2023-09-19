@@ -130,9 +130,7 @@ class IERImportWizard(models.TransientModel):
                     csv_files = {name: archive.read(name) for name in archive.namelist() if '.csv' in name}
                     for model, csv_file in csv_files.items():
                         decoded_csv = csv_file.decode()
-                        io_string_csv = io.StringIO(decoded_csv)
-                        csvreader = csv.reader(io_string_csv)
-                        headers = next(csvreader)
+                        headers = next(csv.reader(io.StringIO(decoded_csv)))
                         model_name = '.'.join(model.split('.')[1:-1])
                         result = self._import_record_and_execute(model_name, decoded_csv, headers)
                         record_count += len(result['ids']) if result['ids'] else 0
@@ -143,16 +141,13 @@ class IERImportWizard(models.TransientModel):
 
                         if result and 'messages' in result and len(result['messages']) > 0:
                             for msg in result['messages']:
-                                if msg['type'] == 'warning':
-                                    if msg['field']:
-                                        warning_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
-                                    else:
-                                        warning_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
+                                if msg['field']:
+                                    html_row = f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
                                 else:
-                                    if msg['field']:
-                                        error_html += f"<tr><td>{model_name}</td><td>{msg['field']}</td><td>{msg['record']}</td><td>{msg['message']}</td></tr>\n"
-                                    else:
-                                        error_html += f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
+                                    html_row = f"<tr><td colspan='3'>{model_name}</td><td>{msg['message']}</td></tr>\n"
+                                error_html += html_row if msg['type'] == 'error' else ''
+                                warning_html += html_row if msg['type'] == 'warning' else ''
+
             if self.run_post_process_code:
                 self.run(records_by_model)
             self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
