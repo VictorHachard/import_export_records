@@ -27,7 +27,8 @@
         font-size: 0.90em;
     }
     label[for='manifest_export'],
-    label[for='manifest_post_process_code'] {
+    label[for='manifest_post_process_code'],
+    label[for='manifest_pre_process_code'] {
         font-weight: 500 !important;
     }
 }
