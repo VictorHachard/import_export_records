@@ -26,6 +26,7 @@ class IERImportWizard(models.TransientModel):
     zip_file_name = fields.Char("File Name")
 
     run_post_process_code = fields.Boolean(default=True)
+    run_pre_process_code = fields.Boolean(default=True)
 
     error_html = fields.Html()
     warning_html = fields.Html()
@@ -40,6 +41,7 @@ class IERImportWizard(models.TransientModel):
     manifest_export = fields.Html(compute='_compute_manifest_data', store=True)
     manifest_record_count = fields.Integer(compute='_compute_manifest_data', store=True)
     manifest_post_process_code = fields.Text(compute='_compute_manifest_data', store=True)
+    manifest_pre_process_code = fields.Text(compute='_compute_manifest_data', store=True)
 
     def _reopen_self(self):
         return {
@@ -80,6 +82,7 @@ class IERImportWizard(models.TransientModel):
                 'manifest_export': '',
                 'manifest_record_count': 0,
                 'manifest_post_process_code': '',
+                'manifest_pre_process_code': '',
                 'is_importable': False,
             })
             if rec.zip_file:
@@ -112,10 +115,12 @@ class IERImportWizard(models.TransientModel):
             'manifest_export': table_html,
             'manifest_record_count': data.get('record_count', 0),
             'manifest_post_process_code': data.get('post_process_code', ''),
+            'manifest_pre_process_code': data.get('pre_process_code', ''),
             'is_importable': True,
         })
 
     def import_action(self):
+        self.ensure_one()
         if self.zip_file:
             self.success_html = False
             error_html, warning_html = '', ''
@@ -124,6 +129,9 @@ class IERImportWizard(models.TransientModel):
             records_by_model = {}
             decoded_zip = base64.b64decode(self.zip_file)
             io_bytes_zip = io.BytesIO(decoded_zip)
+
+            if self.run_pre_process_code:
+                self._run_pre_process_code()
 
             if zipfile.is_zipfile(io_bytes_zip):
                 with zipfile.ZipFile(io_bytes_zip, mode="r") as archive:
@@ -149,7 +157,7 @@ class IERImportWizard(models.TransientModel):
                                 warning_html += html_row if msg['type'] == 'warning' else ''
 
             if self.run_post_process_code:
-                self.run(records_by_model)
+                self._run_post_process_code(records_by_model)
             self.error_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + error_html + "</table>" if error_html else ''
             self.warning_html = "<table><tr><th>Model</th><th>Field</th><th>Record</th><th>Message</th></tr>" + warning_html + "</table>" if warning_html else ''
             self.success_html = f"<p>{_('%s records successfully imported', str(record_count))}</p>"
@@ -177,7 +185,7 @@ class IERImportWizard(models.TransientModel):
         """ Executes the Python code within the provided evaluation context. """
         safe_eval(self.manifest_post_process_code.strip(), eval_context, mode="exec", nocopy=True, filename=str(self))  # nocopy allows to return 'action'
 
-    def run(self, records_by_model):
+    def _run_post_process_code(self, records_by_model):
         """
         Orchestrates the execution of Python code.
         It handles access control, evaluation context setup, and code execution, returning the 'action' dictionary from the code execution, or False if no action is defined.
@@ -185,6 +193,23 @@ class IERImportWizard(models.TransientModel):
         self.ensure_one()
         eval_context = self._get_eval_context()
         eval_context['records_by_model'] = records_by_model
+        # if records:
+        #     try:
+        #         records.check_access_rule('write')
+        #     except AccessError:
+        #         _logger.warning("Forbidden server action %r executed while the user %s does not have access to %s.",
+        #                         self.display_name, self.env.user.login, records,)
+        #         raise
+        run_self = self.with_context(eval_context['env'].context)
+        run_self._run_action_code_multi(eval_context=eval_context)
+
+    def _run_pre_process_code(self):
+        """
+        Orchestrates the execution of Python code.
+        It handles access control, evaluation context setup, and code execution, returning the 'action' dictionary from the code execution, or False if no action is defined.
+        """
+        self.ensure_one()
+        eval_context = self._get_eval_context()
         # if records:
         #     try:
         #         records.check_access_rule('write')

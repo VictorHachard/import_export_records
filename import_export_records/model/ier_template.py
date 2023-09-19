@@ -11,9 +11,15 @@ from odoo.tools import pytz, get_lang
 from odoo.tools.safe_eval import test_python_expr
 
 
-IER_DEFAULT_PYTHON_CODE = """# Available variables:
+IER_DEFAULT_POST_PROCESS_PYTHON_CODE = """# Available variables:
 #  - env
 #  - records_by_model: recordset by model of all imported records; may be void, e.g. {'sale.order': records, ...}
+#  - time, datetime, dateutil, timezone: useful Python libraries
+#  - float_compare: Odoo function to compare floats based on specific precisions
+#  - UserError: Warning Exception to use with raise
+#  - uid, user: current user id and user record\n\n"""
+IER_DEFAULT_PRE_PROCESS_PYTHON_CODE = """# Available variables:
+#  - env
 #  - time, datetime, dateutil, timezone: useful Python libraries
 #  - float_compare: Odoo function to compare floats based on specific precisions
 #  - UserError: Warning Exception to use with raise
@@ -30,17 +36,26 @@ class IERTemplate(models.Model):
     user_id = fields.Many2one('res.users', default=lambda self: self.env.user, readonly=True)
     lines = fields.One2many('ier.template.line', 'ier_template_id', context={'active_test': False})
     model_ids = fields.Many2many('ir.model', compute='_compute_model_ids', string='Models')
-    post_process_code = fields.Text(string='Post Process Python Code', default=IER_DEFAULT_PYTHON_CODE,
+    post_process_code = fields.Text(string='Post Process Python Code', default=IER_DEFAULT_POST_PROCESS_PYTHON_CODE,
                                     help="The post-processing code will execute once all records have been imported. You can choose whether it needs to run during the import process.")
+    pre_process_code = fields.Text(string='Pre Process Python Code', default=IER_DEFAULT_PRE_PROCESS_PYTHON_CODE,
+                                   help="The pre-processing code will execute before any records are imported. You can choose whether it needs to run during the import process.")
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Template name already exists !"),
     ]
 
     @api.constrains('post_process_code')
-    def _check_python_code(self):
+    def _check_post_process_code_python_code(self):
         for action in self.sudo().filtered('post_process_code'):
             msg = test_python_expr(expr=action.post_process_code.strip(), mode="exec")
+            if msg:
+                raise ValidationError(msg)
+
+    @api.constrains('pre_process_code')
+    def _check_pre_process_code_python_code(self):
+        for action in self.sudo().filtered('pre_process_code'):
+            msg = test_python_expr(expr=action.pre_process_code.strip(), mode="exec")
             if msg:
                 raise ValidationError(msg)
 
@@ -70,6 +85,7 @@ class IERTemplate(models.Model):
                 'fields': e.export_fields.mapped('name'),
             } for e in active_lines.mapped('ir_exports_id')],
             'post_process_code': self.post_process_code,
+            'pre_process_code': self.pre_process_code,
         }
 
     def export(self):
@@ -77,6 +93,7 @@ class IERTemplate(models.Model):
         Prepares and exports data in CSV format for current template.
         It then compresses the CSV files into a ZIP archive and creates an attachment for download.
         """
+        self.ensure_one()
         self.lines._check_ir_exports_id()
         datetime_str = self._get_user_formatted_datetime()
         manifest = self._get_manifest()

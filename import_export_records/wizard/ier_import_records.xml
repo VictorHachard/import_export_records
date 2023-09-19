@@ -20,6 +20,7 @@
                     <group string="File" name="file">
                         <field name="zip_file" filename="zip_file_name" widget="binary"/>
                         <field name="zip_file_name" invisible="1"/>
+                        <field name="run_pre_process_code"/>
                         <field name="run_post_process_code"/>
                     </group>
                     <group string="Archive Information" name="archive_info">
@@ -40,9 +41,10 @@
                         </group>
                         <label for="manifest_export" class="text-900" string="Exports Template"/>
                         <field name="manifest_export" nolabel="1" colspan="2"/>
+                        <label for="manifest_pre_process_code" class="text-900" string="Pre Process Code"/>
+                        <field name="manifest_pre_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
                         <label for="manifest_post_process_code" class="text-900" string="Post Process Code"/>
-                        <field name="manifest_post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"
-                               placeholder="Enter Python code here. Help about Python expression is available in the help tab of this document."/>
+                        <field name="manifest_post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
                     </group>
                     <footer>
                         <button name="import_action" type="object" string="Import" class="oe_highlight" attrs="{'invisible': [('is_importable', '=', False)]}"/>

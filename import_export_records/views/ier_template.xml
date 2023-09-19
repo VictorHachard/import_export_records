@@ -39,8 +39,7 @@
                                         <field name="filter_domain" widget="domain" options="{'model': 'model_name', 'in_dialog': True}"/>
                                     </group>
                                     <group string="Python Code" name='code' attrs="{'invisible': [('mode', '=', 'easy')]}">
-                                        <field name="code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"
-                                               placeholder="Enter Python code here. Help about Python expression is available in the help tab of this document."/>
+                                        <field name="code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
                                     </group>
                                 </form>
                                 <tree decoration-muted="(not active)">
@@ -53,9 +52,11 @@
                                 </tree>
                             </field>
                         </page>
+                        <page string="Pre Process Code" name="pre_process">
+                            <field name="pre_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
+                        </page>
                         <page string="Post Process Code" name="post_process">
-                            <field name="post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"
-                                   placeholder="Enter Python code here. Help about Python expression is available in the help tab of this document."/>
+                            <field name="post_process_code" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
                         </page>
                         <page string="Help" name="help">
                             <ul>
