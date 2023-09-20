@@ -17,6 +17,7 @@ class IERTemplateActionHistory(models.Model):
 
     # Import
     template_name = fields.Char()
+    manifest = fields.Text(string='Manifest', readonly=True, help='The manifest of the import file.')
 
     @api.depends('ier_template_id', 'template_name', 'type')
     def _compute_name(self):

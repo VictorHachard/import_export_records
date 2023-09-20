@@ -25,8 +25,8 @@ class IERImportWizard(models.TransientModel):
     zip_file = fields.Binary(string='Upload your File', required=True)
     zip_file_name = fields.Char("File Name")
 
-    run_post_process_code = fields.Boolean(default=True)
-    run_pre_process_code = fields.Boolean(default=True)
+    run_post_process_code = fields.Boolean(default=True, help="Run the post process code after import")
+    run_pre_process_code = fields.Boolean(default=True, help="Run the pre process code before import")
 
     error_html = fields.Html()
     warning_html = fields.Html()
@@ -34,11 +34,11 @@ class IERImportWizard(models.TransientModel):
 
     # Manifest
     is_importable = fields.Boolean(compute='_compute_manifest_data', store=True)
+    manifest = fields.Text(compute='_compute_manifest_data', store=True)
     manifest_datetime = fields.Datetime(compute='_compute_manifest_data', string='Created At', store=True)
     manifest_dbname = fields.Char(compute='_compute_manifest_data', string='From Database', store=True)
     manifest_username = fields.Char(compute='_compute_manifest_data', string='By User', store=True)
     manifest_userlogin = fields.Char(compute='_compute_manifest_data', store=True)
-    manifest_export = fields.Html(compute='_compute_manifest_data', store=True)
     manifest_record_count = fields.Integer(compute='_compute_manifest_data', store=True)
     manifest_post_process_code = fields.Text(compute='_compute_manifest_data', store=True)
     manifest_pre_process_code = fields.Text(compute='_compute_manifest_data', store=True)
@@ -79,11 +79,11 @@ class IERImportWizard(models.TransientModel):
                 'manifest_dbname': '',
                 'manifest_username': '',
                 'manifest_userlogin': '',
-                'manifest_export': '',
                 'manifest_record_count': 0,
                 'manifest_post_process_code': '',
                 'manifest_pre_process_code': '',
                 'is_importable': False,
+                'manifest': '',
             })
             if rec.zip_file:
                 decoded_zip = base64.b64decode(rec.zip_file)
@@ -96,27 +96,16 @@ class IERImportWizard(models.TransientModel):
                             rec._set_manifest_field(json.loads(manifest_content))
 
     def _set_manifest_field(self, data):
-        def wrap_field_with_badge(field):
-            return f'<span class="badge ier_badge">{field}</span>'
-        table_html = '<table>'
-        table_html += '<tr><th>Export Name</th><th>Model Name</th><th>Fields</th></tr>'
-        for export in data.get('ir_exports', []):
-            export_name = export.get('name', '')
-            model_name = export.get('model_name', '')
-            field = ''.join([wrap_field_with_badge(field) for field in export.get('fields', [])])
-            table_html += f'<tr><td>{export_name}</td><td>{model_name}</td><td>{field}</td></tr>'
-        table_html += '</table>'
-
         self.update({
             'manifest_datetime': data.get('datetime', False),
             'manifest_dbname': data.get('dbname', ''),
             'manifest_username': data.get('username', ''),
             'manifest_userlogin': data.get('userlogin', ''),
-            'manifest_export': table_html,
             'manifest_record_count': data.get('record_count', 0),
             'manifest_post_process_code': data.get('post_process_code', ''),
             'manifest_pre_process_code': data.get('pre_process_code', ''),
             'is_importable': True,
+            'manifest': json.dumps(data).encode('utf-8'),
         })
 
     def import_action(self):
@@ -165,6 +154,7 @@ class IERImportWizard(models.TransientModel):
             self.env['ier.template.action.history'].create({
                 'type': 'import',
                 'template_name': self.zip_file_name,
+                'manifest': self.manifest,
             })
 
             return self._reopen_self()

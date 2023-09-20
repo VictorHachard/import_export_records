@@ -21,6 +21,9 @@
                             <field name="user_id" widget="many2one_avatar"/>
                         </group>
                     </group>
+                    <group string="Manifest Info">
+                        <field name="manifest" widget="ier_manifest" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
                 </sheet>
             </form>
         </field>

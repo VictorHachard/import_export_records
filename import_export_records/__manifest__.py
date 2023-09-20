@@ -30,6 +30,10 @@ Users can create export templates and apply filters based on specific domains, m
         'web.assets_backend': [
             'import_export_records/static/src/backend.scss',
 
+            'import_export_records/static/src/widget/*.js',
+            'import_export_records/static/src/widget/*.xml',
+            'import_export_records/static/src/widget/*.scss',
+
             'import_export_records/static/src/list_btn/*.js',
             'import_export_records/static/src/list_btn/*.xml',
         ],
