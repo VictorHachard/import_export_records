@@ -29,6 +29,9 @@ Users can create export templates and apply filters based on specific domains, m
     'assets': {
         'web.assets_backend': [
             'import_export_records/static/src/backend.scss',
+
+            'import_export_records/static/src/list_btn/*.js',
+            'import_export_records/static/src/list_btn/*.xml',
         ],
     },
     'installable': True,

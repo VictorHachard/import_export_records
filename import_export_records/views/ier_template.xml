@@ -93,7 +93,7 @@
         <field name="name">ier.template.view.tree</field>
         <field name="model">ier.template</field>
         <field name="arch" type="xml">
-            <tree class="ier_template_tree" decoration-muted="(not active)">
+            <tree js_class="ier_list_btn" class="ier_template_tree" decoration-muted="(not active)">
                 <field name="active" invisible="1"/>
 
                 <field name="display_name" string="Name"/>
