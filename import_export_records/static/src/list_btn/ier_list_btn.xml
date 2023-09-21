@@ -3,7 +3,7 @@
 
     <t t-name="ier_list_btn" t-inherit="web.ListView.Buttons">
         <xpath expr="//*[@class='btn btn-primary o_list_button_add']" position="after">
-            <button type="button" class="btn btn-primary" t-on-click="OnImportClick">
+            <button type="button" class="btn btn-secondary" t-on-click="OnImportClick">
                 Import
             </button>
         </xpath>

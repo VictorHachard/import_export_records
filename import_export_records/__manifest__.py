@@ -11,7 +11,7 @@ Users can create export templates and apply filters based on specific domains, m
     'version': '1.3.0',
     'author': "Victor",
     'license': 'LGPL-3',
-    'depends': ['base'],
+    'depends': ['base', 'web'],
     'data': [
         'security/ir.model.access.csv',
         'security/res_groups.xml',
