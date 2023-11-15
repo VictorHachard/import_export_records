@@ -5,8 +5,8 @@ from odoo import models
 class IRExports(models.Model):
     _inherit = 'ir.exports'
 
-    def name_get(self):
+    def _compute_display_name(self):
         if self.env.context.get('show_model', False):
-            return [(record.id, f"{record.name} ({record.resource})") for record in self]
-        else:
-            return super().name_get()
+            for rec in self:
+                rec.display_name = f"{rec.name} ({rec.resource})"
+        return super()._compute_display_name()

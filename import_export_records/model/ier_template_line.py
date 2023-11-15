@@ -56,8 +56,9 @@ class IERTemplateLine(models.Model):
 
     line_ids = fields.Many2many('ir.exports.line', compute='_compute_line_ids', help='The export fields associated with the ir.exports template.')
 
-    def name_get(self):
-        return [(record.id, f'{record.ir_exports_id.name} ({record.model_id.name})') for record in self]
+    def _compute_display_name(self):
+        for template in self:
+            template.display_name = f"{template.ir_exports_id.name} ({template.model_id.name})"
 
     @api.constrains('code')
     def _check_python_code(self):
